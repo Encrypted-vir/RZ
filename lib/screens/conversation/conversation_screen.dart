@@ -68,7 +68,25 @@ class ConversationScreenState extends State<ConversationScreen> {
                     itemCount: capsules.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      return _CapsuleCard(capsule: capsules[index]);
+                      final capsule = capsules[index];
+
+                      return Dismissible(
+                        key: Key(capsule.key.toString()),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (_) {
+                          capsule.delete();
+                        },
+                        child: _CapsuleCard(capsule: capsule),
+                      );
                     },
                   );
                 },
@@ -129,15 +147,27 @@ class _CapsuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isUnlocked = now.isAfter(capsule.unlockDate);
 
-    final difference = capsule.unlockDate.difference(now);
+    final isUnlocked =
+        capsule.isInstant ||
+        (capsule.unlockDate != null && now.isAfter(capsule.unlockDate!));
 
-    final days = difference.inDays;
-    final hours = difference.inHours % 24;
-    final minutes = difference.inMinutes % 60;
+    Duration? difference;
 
-    final countdown = '${days}D ${hours}H ${minutes}M';
+    if (!capsule.isInstant && capsule.unlockDate != null) {
+      final diff = capsule.unlockDate!.difference(now);
+      difference = diff.isNegative ? Duration.zero : diff;
+    }
+
+    String countdown = '';
+
+    if (difference != null) {
+      final days = difference.inDays;
+      final hours = difference.inHours % 24;
+      final minutes = difference.inMinutes % 60;
+
+      countdown = '${days}D ${hours}H ${minutes}M';
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -153,7 +183,6 @@ class _CapsuleCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Información izquierda
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,10 +216,7 @@ class _CapsuleCard extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(width: 12),
-
-          // Botón derecha
           isUnlocked
               ? ElevatedButton(
                   onPressed: () {

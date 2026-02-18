@@ -11,13 +11,15 @@ class CapsuleItem extends HiveObject {
   final String content;
 
   @HiveField(2)
-  final DateTime unlockDate;
+  final DateTime? unlockDate;
+
+  @HiveField(3)
+  final bool isInstant;
 
   CapsuleItem({
     required this.from,
     required this.content,
-    required this.unlockDate,
+    this.unlockDate,
+    this.isInstant = false,
   });
-
-  bool get isUnlocked => DateTime.now().isAfter(unlockDate);
 }
