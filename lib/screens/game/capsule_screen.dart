@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/capsule_item.dart';
-import '../main_screen.dart';
+import '../../providers/capsule_provider.dart';
 
 class CapsuleScreen extends StatefulWidget {
   final String mode;
@@ -17,12 +18,12 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
   String? _selectedDate;
 
   final List<String> _dateOptions = [
-    'En 1 semana',
+    'Sin fecha (abrir ahora)',
+    'En 12 horas',
+    'En 1 día',
+    'En 3 días',
+    'En 7 días',
     'En 1 mes',
-    'En 3 meses',
-    'En 6 meses',
-    'En 1 año',
-    'En 2 años',
   ];
 
   @override
@@ -30,6 +31,34 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
     _nameController.dispose();
     _reflectionController.dispose();
     super.dispose();
+  }
+
+  // 🔥 Lógica del segundo: conversión a DateTime real
+  DateTime _convertToDate(String? option) {
+    final now = DateTime.now();
+
+    switch (option) {
+      case 'Sin fecha (abrir ahora)':
+        return now;
+
+      case 'En 12 horas':
+        return now.add(const Duration(hours: 12));
+
+      case 'En 1 día':
+        return now.add(const Duration(days: 1));
+
+      case 'En 3 días':
+        return now.add(const Duration(days: 3));
+
+      case 'En 7 días':
+        return now.add(const Duration(days: 7));
+
+      case 'En 1 mes':
+        return now.add(const Duration(days: 30));
+
+      default:
+        return now;
+    }
   }
 
   Color get _accentColor {
@@ -60,6 +89,13 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
 
   void _onSealMoment() {
     final name = _nameController.text.trim();
+
+    if (_reflectionController.text.trim().isEmpty || _selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escribe tu reflexión y elige una fecha')),
+      );
+      return;
+    }
 
     showDialog(
       context: context,
@@ -102,24 +138,20 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
               height: 48,
               child: ElevatedButton(
                 onPressed: () {
+                  // 🔥 Lógica del segundo: Provider + CapsuleItem con content y unlockDate
                   final capsule = CapsuleItem(
                     from: name.isNotEmpty ? name : 'Anónimo',
-                    isUnlocked: _selectedDate == null,
-                    unlockCountdown: _selectedDate,
+                    content: _reflectionController.text.trim(),
+                    unlockDate: _convertToDate(_selectedDate),
                   );
 
-                  // Guarda la referencia ANTES de cualquier pop
-                  final mainState = context
-                      .findAncestorStateOfType<MainScreenState>();
+                  Provider.of<CapsuleProvider>(
+                    context,
+                    listen: false,
+                  ).addCapsule(capsule);
 
-                  // Cierra el dialog
                   Navigator.pop(dialogContext);
-
-                  // Vuelve al MainScreen
                   Navigator.popUntil(context, (route) => route.isFirst);
-
-                  // Ahora sí agrega la cápsula y cambia el tab
-                  mainState?.addCapsuleToConversation(capsule);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accentColor,
@@ -148,6 +180,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // ── AppBar del diseño original ──
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
@@ -184,6 +217,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                   children: [
                     const SizedBox(height: 12),
 
+                    // ── Ícono central ──
                     Center(
                       child: Container(
                         width: 72,
@@ -259,6 +293,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
 
                     const SizedBox(height: 16),
 
+                    // ── Nota de privacidad (diseño original) ──
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -297,6 +332,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
 
                     const SizedBox(height: 28),
 
+                    // ── Botón principal ──
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -324,6 +360,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
 
                     const SizedBox(height: 16),
 
+                    // ── Footer (diseño original) ──
                     Center(
                       child: Text(
                         'SOULSYNC INTIMACY PROTOCOL © 2024',

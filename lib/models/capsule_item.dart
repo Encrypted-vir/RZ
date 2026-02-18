@@ -1,11 +1,23 @@
-class CapsuleItem {
-  final String from;
-  final bool isUnlocked;
-  final String? unlockCountdown;
+import 'package:hive/hive.dart';
 
-  const CapsuleItem({
+part 'capsule_item.g.dart';
+
+@HiveType(typeId: 0)
+class CapsuleItem extends HiveObject {
+  @HiveField(0)
+  final String from;
+
+  @HiveField(1)
+  final String content;
+
+  @HiveField(2)
+  final DateTime unlockDate;
+
+  CapsuleItem({
     required this.from,
-    required this.isUnlocked,
-    this.unlockCountdown,
+    required this.content,
+    required this.unlockDate,
   });
+
+  bool get isUnlocked => DateTime.now().isAfter(unlockDate);
 }

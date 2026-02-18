@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rz/models/capsule_item.dart';
 
 // ---------------------------------------------------------------------------
@@ -11,28 +12,7 @@ class ConversationScreen extends StatefulWidget {
   State<ConversationScreen> createState() => ConversationScreenState();
 }
 
-// Estado PÚBLICO para que GlobalKey pueda accederlo desde main_screen
 class ConversationScreenState extends State<ConversationScreen> {
-  // Datos de ejemplo para previsualizar el diseño
-  final List<CapsuleItem> _capsules = [
-    const CapsuleItem(
-      from: 'Valentina',
-      isUnlocked: false,
-      unlockCountdown: '12D 05H 20M',
-    ),
-    const CapsuleItem(from: 'Mateo', isUnlocked: true),
-    const CapsuleItem(
-      from: 'El Equipo',
-      isUnlocked: false,
-      unlockCountdown: '03D 14H 05M',
-    ),
-    const CapsuleItem(from: 'Sofía', isUnlocked: true),
-  ];
-
-  void addCapsule(CapsuleItem capsule) {
-    setState(() => _capsules.add(capsule));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,16 +44,35 @@ class ConversationScreenState extends State<ConversationScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 24), // balance
+                  const SizedBox(width: 24),
                 ],
               ),
             ),
 
-            // Lista o estado vacío
+            // Lista dinámica con Hive
             Expanded(
-              child: _capsules.isEmpty
-                  ? _buildEmptyState()
-                  : _buildCapsuleList(),
+              child: ValueListenableBuilder(
+                valueListenable: Hive.box<CapsuleItem>('capsules').listenable(),
+                builder: (context, Box<CapsuleItem> box, _) {
+                  if (box.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  final capsules = box.values.toList().reversed.toList();
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount: capsules.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return _CapsuleCard(capsule: capsules[index]);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -117,15 +116,6 @@ class ConversationScreenState extends State<ConversationScreen> {
       ),
     );
   }
-
-  Widget _buildCapsuleList() {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: _capsules.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _CapsuleCard(capsule: _capsules[index]),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -138,12 +128,23 @@ class _CapsuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final isUnlocked = now.isAfter(capsule.unlockDate);
+
+    final difference = capsule.unlockDate.difference(now);
+
+    final days = difference.inDays;
+    final hours = difference.inHours % 24;
+    final minutes = difference.inMinutes % 60;
+
+    final countdown = '${days}D ${hours}H ${minutes}M';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: capsule.isUnlocked
+        border: isUnlocked
             ? Border.all(
                 color: const Color(0xFFD94F5C).withValues(alpha: 0.35),
                 width: 1.5,
@@ -152,7 +153,7 @@ class _CapsuleCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Info izquierda
+          // Información izquierda
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,44 +167,22 @@ class _CapsuleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                capsule.isUnlocked
-                    ? const Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            size: 14,
-                            color: Color(0xFFD94F5C),
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '¡LISTA PARA ABRIR!',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFD94F5C),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
+                isUnlocked
+                    ? const Text(
+                        '¡LISTA PARA ABRIR!',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFD94F5C),
+                        ),
                       )
-                    : Row(
-                        children: [
-                          const Icon(
-                            Icons.timer_outlined,
-                            size: 14,
-                            color: Color(0xFF9E8A8A),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'DESBLOQUEA EN: ${capsule.unlockCountdown}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF9E8A8A),
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
+                    : Text(
+                        'DESBLOQUEA EN: $countdown',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF9E8A8A),
+                        ),
                       ),
               ],
             ),
@@ -212,10 +191,10 @@ class _CapsuleCard extends StatelessWidget {
           const SizedBox(width: 12),
 
           // Botón derecha
-          capsule.isUnlocked
+          isUnlocked
               ? ElevatedButton(
                   onPressed: () {
-                    // TODO: abrir cápsula
+                    _showCapsuleContent(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD94F5C),
@@ -252,6 +231,22 @@ class _CapsuleCard extends StatelessWidget {
                     ),
                   ),
                 ),
+        ],
+      ),
+    );
+  }
+
+  void _showCapsuleContent(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Mensaje de ${capsule.from}'),
+        content: Text(capsule.content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
         ],
       ),
     );

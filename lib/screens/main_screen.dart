@@ -3,7 +3,6 @@ import 'home/home_screen.dart';
 import 'conversation/conversation_screen.dart';
 import 'profile/profile_screen.dart';
 import 'settings/settings_screen.dart';
-import '../models/capsule_item.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,19 +14,16 @@ class MainScreen extends StatefulWidget {
 class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // GlobalKey para acceder directamente al estado de ConversationScreen
-  final _conversationKey = GlobalKey<ConversationScreenState>();
-
+  // Lista de pantallas
   late final List<Widget> _screens = [
     const HomeScreen(),
-    ConversationScreen(key: _conversationKey),
+    const ConversationScreen(),
     const ProfileScreen(),
     const SettingsScreen(),
   ];
 
-  // Llamado desde CapsuleScreen para agregar cápsula y cambiar al tab
-  void addCapsuleToConversation(CapsuleItem capsule) {
-    _conversationKey.currentState?.addCapsule(capsule);
+  // Método para cambiar al tab de cápsulas
+  void goToConversationTab() {
     setState(() => _currentIndex = 1);
   }
 
