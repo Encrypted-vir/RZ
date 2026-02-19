@@ -1,7 +1,9 @@
+//lib/screens/game/capsule_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/capsule_item.dart';
 import '../../providers/capsule_provider.dart';
+import '../main_screen.dart';
 
 class CapsuleScreen extends StatefulWidget {
   final String mode;
@@ -138,7 +140,6 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
               height: 48,
               child: ElevatedButton(
                 onPressed: () {
-                  // 🔥 Lógica del segundo: Provider + CapsuleItem con content y unlockDate
                   final capsule = CapsuleItem(
                     from: name.isNotEmpty ? name : 'Anónimo',
                     content: _reflectionController.text.trim(),
@@ -151,7 +152,14 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                   ).addCapsule(capsule);
 
                   Navigator.pop(dialogContext);
-                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const MainScreen(initialIndex: 1), // 👈 tab Caps
+                    ),
+                    (route) => route.isFirst, // deja solo WelcomeScreen abajo
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accentColor,

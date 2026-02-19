@@ -1,3 +1,4 @@
+//lib/screens/main_screen.dart
 import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
 import 'conversation/conversation_screen.dart';
@@ -5,16 +6,16 @@ import 'profile/profile_screen.dart';
 import 'settings/settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => MainScreenState();
 }
 
 class MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex; // 👈 cambia de "int _currentIndex = 0" a "late int"
 
-  // Lista de pantallas
   late final List<Widget> _screens = [
     const HomeScreen(),
     const ConversationScreen(),
@@ -22,7 +23,13 @@ class MainScreenState extends State<MainScreen> {
     const SettingsScreen(),
   ];
 
-  // Método para cambiar al tab de cápsulas
+  @override
+  void initState() {
+    // 👈 agrega este método
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
   void goToConversationTab() {
     setState(() => _currentIndex = 1);
   }
@@ -39,9 +46,7 @@ class MainScreenState extends State<MainScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Bottom Navigation Bar
-// ---------------------------------------------------------------------------
+
 class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.currentIndex, required this.onTap});
 

@@ -1,3 +1,4 @@
+//lib/screens/conversation/conversation_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rz/models/capsule_item.dart';
@@ -66,7 +67,7 @@ class ConversationScreenState extends State<ConversationScreen> {
                       vertical: 8,
                     ),
                     itemCount: capsules.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final capsule = capsules[index];
 
