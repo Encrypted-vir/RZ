@@ -1,19 +1,23 @@
+//lib/providers/capsule_provider.dart
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import '../models/capsule_item.dart';
+import '../data/repositories/capsule_repository.dart';
 
 class CapsuleProvider extends ChangeNotifier {
-  final Box<CapsuleItem> _capsuleBox = Hive.box<CapsuleItem>('capsules');
+  final CapsuleRepository _repository;
 
-  List<CapsuleItem> get capsules => _capsuleBox.values.toList();
+  // El repository se inyecta, no se crea aquí
+  CapsuleProvider(this._repository);
+
+  List<CapsuleItem> get capsules => _repository.getAll();
 
   void addCapsule(CapsuleItem capsule) {
-    _capsuleBox.add(capsule);
+    _repository.add(capsule);
     notifyListeners();
   }
 
   void deleteCapsule(int index) {
-    _capsuleBox.deleteAt(index);
+    _repository.deleteAt(index);
     notifyListeners();
   }
 }

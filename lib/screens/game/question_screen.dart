@@ -1,10 +1,10 @@
 //lib/screens/game/question_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'capsule_screen.dart';
+import 'package:go_router/go_router.dart';
 
 // ---------------------------------------------------------------------------
-// Configuración por modo
+// Configuración por modo (sin cambios)
 // ---------------------------------------------------------------------------
 class ModeConfig {
   final String title;
@@ -104,17 +104,11 @@ class QuestionScreen extends StatefulWidget {
 class _QuestionScreenState extends State<QuestionScreen> {
   late ModeConfig _config;
   late List<String> _questions;
-
-  // _currentIndex: controla la barra de progreso, solo avanza con "Siguiente"
   int _currentIndex = 0;
-
-  // _replacementIndex: controla qué pregunta se muestra, null = usa _currentIndex
   int? _replacementIndex;
-
   int _secondsLeft = 90;
   Timer? _timer;
 
-  // La pregunta visible es la de reemplazo si existe, si no la del índice actual
   int get _displayIndex => _replacementIndex ?? _currentIndex;
 
   @override
@@ -147,14 +141,13 @@ class _QuestionScreenState extends State<QuestionScreen> {
     if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
-        _replacementIndex = null; // vuelve a la secuencia normal
+        _replacementIndex = null;
       });
       _startTimer();
     }
   }
 
   void _changeQuestion() {
-    // Cambia solo la pregunta visible sin mover el índice de progreso
     final pool = List.generate(_questions.length, (i) => i)
       ..remove(_displayIndex);
     if (pool.isEmpty) return;
@@ -169,9 +162,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
     return '$m : $s';
   }
 
-  // La barra solo depende de _currentIndex
   double get _progress => (_currentIndex + 1) / _questions.length;
-
   bool get _isTimerWarning => _secondsLeft <= 15;
 
   @override
@@ -194,8 +185,6 @@ class _QuestionScreenState extends State<QuestionScreen> {
               const SizedBox(height: 24),
               _buildNextButton(),
               const SizedBox(height: 12),
-
-              // Cambiar pregunta
               GestureDetector(
                 onTap: _changeQuestion,
                 child: Row(
@@ -218,9 +207,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Text(
                 'CONECTA PROFUNDAMENTE',
                 style: TextStyle(
@@ -230,7 +217,6 @@ class _QuestionScreenState extends State<QuestionScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-
               const SizedBox(height: 16),
             ],
           ),
@@ -244,7 +230,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => context.go('/home'), // 👈 vuelve al home tab
           child: const Icon(
             Icons.close_rounded,
             size: 26,
@@ -373,9 +359,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
               ),
               child: Icon(_config.icon, color: _config.accentColor, size: 28),
             ),
-
             const SizedBox(height: 28),
-
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
               transitionBuilder: (child, animation) => FadeTransition(
@@ -389,7 +373,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 ),
               ),
               child: Text(
-                _questions[_displayIndex], // usa _displayIndex, no _currentIndex
+                _questions[_displayIndex],
                 key: ValueKey(_displayIndex),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -401,15 +385,13 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            Text(
+            const Text(
               'Tómate tu tiempo para responder\ncon sinceridad y profundidad.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: const Color(0xFF9E8A8A),
+                color: Color(0xFF9E8A8A),
                 height: 1.6,
               ),
             ),
@@ -427,12 +409,8 @@ class _QuestionScreenState extends State<QuestionScreen> {
       height: 56,
       child: ElevatedButton(
         onPressed: isLast
-            ? () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CapsuleScreen(mode: widget.mode),
-                ),
-              )
+            ? () =>
+                  context.go('/game/${widget.mode}/capsule') // 👈 go_router
             : _nextQuestion,
         style: ElevatedButton.styleFrom(
           backgroundColor: _config.accentColor,

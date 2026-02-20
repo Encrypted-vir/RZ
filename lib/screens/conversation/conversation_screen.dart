@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rz/models/capsule_item.dart';
 
-// ---------------------------------------------------------------------------
-// ConversationScreen
-// ---------------------------------------------------------------------------
 class ConversationScreen extends StatefulWidget {
   const ConversationScreen({super.key});
 
@@ -21,43 +18,26 @@ class ConversationScreenState extends State<ConversationScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: const Icon(
-                      Icons.arrow_back_rounded,
-                      size: 24,
-                      color: Color(0xFF1A1A1A),
-                    ),
+            // Top bar — sin back button (es un tab, no una pantalla push)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Center(
+                child: Text(
+                  'Cápsulas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
                   ),
-                  const Expanded(
-                    child: Text(
-                      'Cápsulas',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                ],
+                ),
               ),
             ),
 
-            // Lista dinámica con Hive
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: Hive.box<CapsuleItem>('capsules').listenable(),
                 builder: (context, Box<CapsuleItem> box, _) {
-                  if (box.isEmpty) {
-                    return _buildEmptyState();
-                  }
+                  if (box.isEmpty) return _buildEmptyState();
 
                   final capsules = box.values.toList().reversed.toList();
 
@@ -70,7 +50,6 @@ class ConversationScreenState extends State<ConversationScreen> {
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final capsule = capsules[index];
-
                       return Dismissible(
                         key: Key(capsule.key.toString()),
                         direction: DismissDirection.endToStart,
@@ -83,9 +62,7 @@ class ConversationScreenState extends State<ConversationScreen> {
                           ),
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                        onDismissed: (_) {
-                          capsule.delete();
-                        },
+                        onDismissed: (_) => capsule.delete(),
                         child: _CapsuleCard(capsule: capsule),
                       );
                     },
@@ -138,7 +115,7 @@ class ConversationScreenState extends State<ConversationScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Capsule Card
+// Capsule Card (sin cambios)
 // ---------------------------------------------------------------------------
 class _CapsuleCard extends StatelessWidget {
   const _CapsuleCard({required this.capsule});
@@ -148,26 +125,20 @@ class _CapsuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-
     final isUnlocked =
         capsule.isInstant ||
         (capsule.unlockDate != null && now.isAfter(capsule.unlockDate!));
 
     Duration? difference;
-
     if (!capsule.isInstant && capsule.unlockDate != null) {
       final diff = capsule.unlockDate!.difference(now);
       difference = diff.isNegative ? Duration.zero : diff;
     }
 
     String countdown = '';
-
     if (difference != null) {
-      final days = difference.inDays;
-      final hours = difference.inHours % 24;
-      final minutes = difference.inMinutes % 60;
-
-      countdown = '${days}D ${hours}H ${minutes}M';
+      countdown =
+          '${difference.inDays}D ${difference.inHours % 24}H ${difference.inMinutes % 60}M';
     }
 
     return Container(
@@ -220,9 +191,7 @@ class _CapsuleCard extends StatelessWidget {
           const SizedBox(width: 12),
           isUnlocked
               ? ElevatedButton(
-                  onPressed: () {
-                    _showCapsuleContent(context);
-                  },
+                  onPressed: () => _showCapsuleContent(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD94F5C),
                     foregroundColor: Colors.white,
@@ -266,12 +235,14 @@ class _CapsuleCard extends StatelessWidget {
   void _showCapsuleContent(BuildContext context) {
     showDialog(
       context: context,
+      useRootNavigator: true, // 👈 esto soluciona el bug
       builder: (_) => AlertDialog(
         title: Text('Mensaje de ${capsule.from}'),
         content: Text(capsule.content),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () =>
+                Navigator.of(context, rootNavigator: true).pop(), // 👈
             child: const Text('Cerrar'),
           ),
         ],

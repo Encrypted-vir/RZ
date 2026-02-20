@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'screens/welcome_screen.dart';
 import 'models/capsule_item.dart';
 import 'providers/capsule_provider.dart';
+import 'data/repositories/capsule_repository.dart';
+import 'router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ void main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CapsuleProvider(),
+      create: (_) => CapsuleProvider(CapsuleRepository()), // 👈 inyección
       child: const MyApp(),
     ),
   );
@@ -27,9 +28,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      home: WelcomeScreen(),
+      routerConfig: appRouter,
     );
   }
 }

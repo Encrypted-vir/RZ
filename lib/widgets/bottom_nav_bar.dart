@@ -1,54 +1,12 @@
-//lib/screens/main_screen.dart
+//lib/widgets/bottom_nav_bar.dart
 import 'package:flutter/material.dart';
-import 'home/home_screen.dart';
-import 'conversation/conversation_screen.dart';
-import 'profile/profile_screen.dart';
-import 'settings/settings_screen.dart';
 
-class MainScreen extends StatefulWidget {
-  final int initialIndex;
-  const MainScreen({super.key, this.initialIndex = 0});
-
-  @override
-  State<MainScreen> createState() => MainScreenState();
-}
-
-class MainScreenState extends State<MainScreen> {
-  late int _currentIndex; // 👈 cambia de "int _currentIndex = 0" a "late int"
-
-  late final List<Widget> _screens = [
-    const HomeScreen(),
-    const ConversationScreen(),
-    const ProfileScreen(),
-    const SettingsScreen(),
-  ];
-
-  @override
-  void initState() {
-    // 👈 agrega este método
-    super.initState();
-    _currentIndex = widget.initialIndex;
-  }
-
-  void goToConversationTab() {
-    setState(() => _currentIndex = 1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
-    );
-  }
-}
-
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.currentIndex, required this.onTap});
+class BottomNavBar extends StatelessWidget {
+  const BottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -73,25 +31,25 @@ class _BottomNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(
+              NavItem(
                 icon: Icons.home_rounded,
                 label: 'Home',
                 active: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
-              _NavItem(
+              NavItem(
                 icon: Icons.chat_bubble_outline_rounded,
                 label: 'Caps',
                 active: currentIndex == 1,
                 onTap: () => onTap(1),
               ),
-              _NavItem(
+              NavItem(
                 icon: Icons.person_outline_rounded,
                 label: 'Profile',
                 active: currentIndex == 2,
                 onTap: () => onTap(2),
               ),
-              _NavItem(
+              NavItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 active: currentIndex == 3,
@@ -105,8 +63,9 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
+class NavItem extends StatelessWidget {
+  const NavItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.active,

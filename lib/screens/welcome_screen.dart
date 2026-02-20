@@ -1,6 +1,6 @@
 //lib/screens/welcome_screen.dart
 import 'package:flutter/material.dart';
-import 'main_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -11,22 +11,18 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
-  // Animación de entrada (fade + scale inicial)
   late AnimationController _entryController;
   late Animation<double> _fadeIn;
   late Animation<double> _scaleRings;
-
-  // Animación de ondas en loop
   late AnimationController _waveController;
 
   static const int _waveCount = 3;
-  static const double _waveDelay = 0.33; // desfase entre ondas (0.0 - 1.0)
+  static const double _waveDelay = 0.33;
 
   @override
   void initState() {
     super.initState();
 
-    // --- Animación de entrada ---
     _entryController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -44,7 +40,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     _entryController.forward();
 
-    // --- Animación de ondas en loop ---
     _waveController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 5000),
@@ -103,7 +98,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 const SizedBox(height: 28),
 
-                // Title + Subtitle
                 FadeTransition(
                   opacity: _fadeIn,
                   child: Column(
@@ -148,7 +142,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 const SizedBox(height: 32),
 
-                // Rings illustration + Ripple waves
+                // Rings + Ripple waves
                 Expanded(
                   child: Align(
                     alignment: const Alignment(0, -0.4),
@@ -162,7 +156,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Ondas animadas (ripple) con desfase entre cada una
                               ...List.generate(_waveCount, (i) {
                                 return _WaveRipple(
                                   controller: _waveController,
@@ -171,8 +164,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   color: const Color(0xFFD94F5C),
                                 );
                               }),
-
-                              // Círculo central con iconos
                               Container(
                                 width: 80,
                                 height: 80,
@@ -227,14 +218,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const MainScreen(),
-                              ),
-                            );
-                          },
+                          onPressed: () => context.go('/home'), // 👈 go_router
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFD94F5C),
                             foregroundColor: Colors.white,
@@ -268,8 +252,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         height: 56,
                         child: OutlinedButton(
                           onPressed: () {
-                            // TODO: Navigate to how it works screen
-                            // Navigator.pushNamed(context, '/how-it-works');
+                            // TODO: context.go('/how-it-works')
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF1A1A1A),
@@ -340,9 +323,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 }
 
-// ---------------------------------------------------------------------------
-// Widget que pinta una sola onda expandiéndose y desvaneciéndose en loop.
-// ---------------------------------------------------------------------------
 class _WaveRipple extends StatelessWidget {
   const _WaveRipple({
     required this.controller,
@@ -352,8 +332,8 @@ class _WaveRipple extends StatelessWidget {
   });
 
   final AnimationController controller;
-  final double delay; // 0.0 – 1.0, desfase relativo en el ciclo
-  final double maxRadius; // radio máximo al que llega la onda
+  final double delay;
+  final double maxRadius;
   final Color color;
 
   @override
@@ -361,13 +341,8 @@ class _WaveRipple extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        // Progreso de esta onda (cíclico con su desfase)
         final double progress = (controller.value + delay) % 1.0;
-
-        // Radio: parte desde el borde del círculo central (40px) hasta maxRadius
         final double radius = 40 + (maxRadius - 40) * progress;
-
-        // Opacidad: fuerte al inicio, se desvanece al crecer
         final double opacity = (1.0 - progress) * 0.4;
 
         return Container(

@@ -1,9 +1,9 @@
 //lib/screens/game/capsule_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/capsule_item.dart';
 import '../../providers/capsule_provider.dart';
-import '../main_screen.dart';
 
 class CapsuleScreen extends StatefulWidget {
   final String mode;
@@ -35,29 +35,21 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
     super.dispose();
   }
 
-  // 🔥 Lógica del segundo: conversión a DateTime real
   DateTime _convertToDate(String? option) {
     final now = DateTime.now();
-
     switch (option) {
       case 'Sin fecha (abrir ahora)':
         return now;
-
       case 'En 12 horas':
         return now.add(const Duration(hours: 12));
-
       case 'En 1 día':
         return now.add(const Duration(days: 1));
-
       case 'En 3 días':
         return now.add(const Duration(days: 3));
-
       case 'En 7 días':
         return now.add(const Duration(days: 7));
-
       case 'En 1 mes':
         return now.add(const Duration(days: 30));
-
       default:
         return now;
     }
@@ -152,14 +144,9 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                   ).addCapsule(capsule);
 
                   Navigator.pop(dialogContext);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const MainScreen(initialIndex: 1), // 👈 tab Caps
-                    ),
-                    (route) => route.isFirst, // deja solo WelcomeScreen abajo
-                  );
+                  context.go(
+                    '/capsules',
+                  ); // 👈 una sola línea, va al tab correcto
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accentColor,
@@ -188,13 +175,12 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── AppBar del diseño original ──
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => context.pop(), // 👈 go_router
                     child: const Icon(
                       Icons.arrow_back_rounded,
                       size: 24,
@@ -216,7 +202,6 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                 ],
               ),
             ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -224,8 +209,6 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 12),
-
-                    // ── Ícono central ──
                     Center(
                       child: Container(
                         width: 72,
@@ -241,9 +224,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     const Center(
                       child: Text(
                         'Un mensaje para el futuro',
@@ -256,9 +237,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Center(
                       child: Text(
                         'Escribe hoy lo que tu corazón siente. Solo\npodrá ser leído en la fecha que elijas.',
@@ -270,9 +249,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
                     _buildLabel('¿CON QUIÉN JUGASTE?'),
                     const SizedBox(height: 8),
                     _buildTextField(
@@ -281,9 +258,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                       suffixIcon: Icons.person_outline_rounded,
                       maxLines: 1,
                     ),
-
                     const SizedBox(height: 20),
-
                     _buildLabel('TU REFLEXIÓN ÍNTIMA'),
                     const SizedBox(height: 8),
                     _buildTextField(
@@ -292,16 +267,11 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                       maxLines: 5,
                       showPrivacyNote: true,
                     ),
-
                     const SizedBox(height: 20),
-
                     _buildLabel('¿CUÁNDO DEBE ABRIRSE?'),
                     const SizedBox(height: 8),
                     _buildDateDropdown(),
-
                     const SizedBox(height: 16),
-
-                    // ── Nota de privacidad (diseño original) ──
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -337,10 +307,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
-                    // ── Botón principal ──
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -365,10 +332,7 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
-                    // ── Footer (diseño original) ──
                     Center(
                       child: Text(
                         'SOULSYNC INTIMACY PROTOCOL © 2024',
@@ -380,7 +344,6 @@ class _CapsuleScreenState extends State<CapsuleScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
                   ],
                 ),
