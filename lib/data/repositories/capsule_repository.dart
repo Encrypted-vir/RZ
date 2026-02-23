@@ -1,5 +1,6 @@
 //lib/data/repositories/capsule_repository.dart
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart'; 
 import '../../models/capsule_item.dart';
 
 class CapsuleRepository {
@@ -13,11 +14,9 @@ class CapsuleRepository {
     await _box.add(capsule);
   }
 
-  // Eliminar por índice
-  Future<void> deleteAt(int index) async {
-    await _box.deleteAt(index);
-  }
+  // ✅ deleteAt eliminado — ahora se elimina por objeto desde el provider
 
   // Escuchar cambios en tiempo real (para ValueListenableBuilder)
-  Box<CapsuleItem> get listenable => _box;
+  ValueListenable<Box<CapsuleItem>> get listenable =>
+      _box.listenable(); // 👈 dos cambios aquí
 }

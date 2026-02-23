@@ -1,18 +1,18 @@
 //lib/screens/conversation/conversation_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:rz/models/capsule_item.dart';
+import 'package:rz/providers/capsule_provider.dart';
 
-class ConversationScreen extends StatefulWidget {
+class ConversationScreen extends StatelessWidget {
   const ConversationScreen({super.key});
 
   @override
-  State<ConversationScreen> createState() => ConversationScreenState();
-}
-
-class ConversationScreenState extends State<ConversationScreen> {
-  @override
   Widget build(BuildContext context) {
+    // Obtenemos el listenable desde el provider, no desde Hive directamente
+    final listenable = context.read<CapsuleProvider>().listenable;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SafeArea(
@@ -34,9 +34,9 @@ class ConversationScreenState extends State<ConversationScreen> {
             ),
 
             Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: Hive.box<CapsuleItem>('capsules').listenable(),
-                builder: (context, Box<CapsuleItem> box, _) {
+              child: ValueListenableBuilder<Box<CapsuleItem>>(
+                valueListenable: listenable,
+                builder: (context, box, _) {
                   if (box.isEmpty) return _buildEmptyState();
 
                   final capsules = box.values.toList().reversed.toList();
@@ -62,7 +62,10 @@ class ConversationScreenState extends State<ConversationScreen> {
                           ),
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                        onDismissed: (_) => capsule.delete(),
+                        // ✅ Elimina a través del provider, no directo a Hive
+                        onDismissed: (_) => context
+                            .read<CapsuleProvider>()
+                            .deleteCapsule(capsule),
                         child: _CapsuleCard(capsule: capsule),
                       );
                     },
@@ -115,7 +118,7 @@ class ConversationScreenState extends State<ConversationScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Capsule Card (sin cambios)
+// Capsule Card — lógica de negocio delegada al modelo
 // ---------------------------------------------------------------------------
 class _CapsuleCard extends StatelessWidget {
   const _CapsuleCard({required this.capsule});
@@ -124,22 +127,9 @@ class _CapsuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final isUnlocked =
-        capsule.isInstant ||
-        (capsule.unlockDate != null && now.isAfter(capsule.unlockDate!));
-
-    Duration? difference;
-    if (!capsule.isInstant && capsule.unlockDate != null) {
-      final diff = capsule.unlockDate!.difference(now);
-      difference = diff.isNegative ? Duration.zero : diff;
-    }
-
-    String countdown = '';
-    if (difference != null) {
-      countdown =
-          '${difference.inDays}D ${difference.inHours % 24}H ${difference.inMinutes % 60}M';
-    }
+    // ✅ Ya no calculamos nada aquí — el modelo lo expone
+    final isUnlocked = capsule.isUnlocked;
+    final countdown = capsule.countdownText;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -235,14 +225,13 @@ class _CapsuleCard extends StatelessWidget {
   void _showCapsuleContent(BuildContext context) {
     showDialog(
       context: context,
-      useRootNavigator: true, // 👈 esto soluciona el bug
+      useRootNavigator: true,
       builder: (_) => AlertDialog(
         title: Text('Mensaje de ${capsule.from}'),
         content: Text(capsule.content),
         actions: [
           TextButton(
-            onPressed: () =>
-                Navigator.of(context, rootNavigator: true).pop(), // 👈
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
             child: const Text('Cerrar'),
           ),
         ],

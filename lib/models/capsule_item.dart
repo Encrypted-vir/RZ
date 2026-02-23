@@ -22,4 +22,19 @@ class CapsuleItem extends HiveObject {
     this.unlockDate,
     this.isInstant = false,
   });
+
+  bool get isUnlocked =>
+      isInstant || (unlockDate != null && DateTime.now().isAfter(unlockDate!));
+
+  Duration? get remainingTime {
+    if (isInstant || unlockDate == null) return null;
+    final diff = unlockDate!.difference(DateTime.now());
+    return diff.isNegative ? Duration.zero : diff;
+  }
+
+  String get countdownText {
+    final d = remainingTime;
+    if (d == null) return '';
+    return '${d.inDays}D ${d.inHours % 24}H ${d.inMinutes % 60}M';
+  }
 }
