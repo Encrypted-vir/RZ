@@ -10,9 +10,15 @@ class AppShell extends StatelessWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/capsules')) return 1;
-    if (location.startsWith('/profile')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/capsules')) {
+      return 1;
+    }
+    if (location.startsWith('/minigames')) {
+      return 2;
+    }
+    if (location.startsWith('/profile')) {
+      return 3;
+    }
     return 0;
   }
 
@@ -33,10 +39,10 @@ class AppShell extends StatelessWidget {
               context.go('/capsules');
               break;
             case 2:
-              context.go('/profile');
+              context.go('/minigames');
               break;
             case 3:
-              context.go('/settings');
+              context.go('/profile');
               break;
           }
         },
